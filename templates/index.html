@@ -3,56 +3,183 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RI Vector Studio PRO v3</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
-body{font-family:Inter,system-ui,sans-serif}.checker{background-color:#0b0f19;background-image:linear-gradient(45deg,#1e293b 25%,transparent 25%),linear-gradient(-45deg,#1e293b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1e293b 75%),linear-gradient(-45deg,transparent 75%,#1e293b 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}.drop.drag{border-color:#8b5cf6;background:#1e1b4b}.tab.active{background:#7c3aed}.canvas{overflow:hidden;position:relative}.canvas img,.canvas svg{max-width:100%;max-height:100%;width:auto;height:auto}.disabled{opacity:.5;pointer-events:none}
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%}
+body{font-family:Inter,system-ui,sans-serif;background:#020817;color:#f1f5f9;min-height:100vh}
+
+/* ===== LAYOUT ===== */
+header{height:64px;border-bottom:1px solid #1e293b;background:#0f172a;padding:0 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+main{padding:16px;display:grid;grid-template-columns:290px 1fr 300px;gap:16px;height:calc(100vh - 64px);overflow:hidden}
+@media(max-width:1024px){main{grid-template-columns:1fr;height:auto;overflow:auto}}
+
+/* ===== HEADER ===== */
+.logo{width:36px;height:36px;border-radius:12px;background:#7c3aed;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.logo-title{font-weight:700;font-size:15px}
+.logo-sub{font-size:10px;color:#94a3b8}
+.header-btns{display:flex;gap:8px}
+
+/* ===== BUTTONS ===== */
+button{cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-reset{padding:8px 12px;border-radius:8px;background:#1e293b;color:#f1f5f9;font-size:12px}
+.btn-reset:hover{background:#334155}
+.btn-export{padding:8px 16px;border-radius:8px;background:#059669;color:#fff;font-size:12px;font-weight:700}
+.btn-export:hover:not(:disabled){background:#10b981}
+.btn-export:disabled{background:#1e293b;color:#64748b;cursor:not-allowed}
+.btn-magic{width:100%;padding:12px;border-radius:12px;background:#7c3aed;color:#fff;font-weight:700;font-size:14px}
+.btn-magic:hover:not(:disabled){background:#6d28d9}
+.btn-magic:disabled{opacity:.5;cursor:not-allowed}
+
+/* ===== SIDEBAR ===== */
+aside{overflow-y:auto}
+.card{background:#0f172a;border-radius:16px;padding:16px;margin-bottom:12px}
+.upload-box{border:2px dashed #334155;border-radius:16px;padding:20px;text-align:center;background:#0f172a;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.upload-box:hover,.upload-box.drag{border-color:#8b5cf6;background:#1e1b4b}
+.upload-icon{font-size:32px;margin-bottom:6px}
+.upload-title{font-weight:700;font-size:14px}
+.upload-sub{font-size:11px;color:#94a3b8;margin-top:4px}
+
+/* ===== FORM CONTROLS ===== */
+label{font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:8px}
+select{width:100%;margin-top:4px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px;font-size:13px;color:#f1f5f9;outline:none}
+select:focus{border-color:#7c3aed}
+input[type=range]{width:100%;accent-color:#8b5cf6;margin-top:4px}
+input[type=checkbox]{accent-color:#8b5cf6;width:16px;height:16px;cursor:pointer}
+input[type=color]{width:100%;height:36px;border:none;border-radius:6px;cursor:pointer;background:none}
+.color-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.slider-row{margin-bottom:10px}
+.section-title{font-weight:700;margin-bottom:12px;font-size:14px}
+.status{text-align:center;font-size:11px;color:#94a3b8;min-height:16px;margin-top:8px}
+hr.divider{border:none;border-top:1px solid #1e293b;margin:16px 0}
+
+/* ===== CANVAS AREA ===== */
+section{min-width:0;display:flex;flex-direction:column;gap:12px}
+.tab-bar{background:#0f172a;border-radius:10px;padding:8px;display:flex;gap:8px;align-items:center}
+.tab{padding:6px 12px;border-radius:8px;font-size:12px;background:transparent;color:#94a3b8}
+.tab:hover{background:#1e293b;color:#f1f5f9}
+.tab.active{background:#7c3aed;color:#fff}
+.zoom-info{margin-left:auto;font-size:11px;color:#94a3b8}
+.zoom-btn{padding:4px 10px;background:#1e293b;border-radius:6px;color:#f1f5f9;font-size:16px}
+.zoom-btn:hover{background:#334155}
+.canvas-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+.canvas{overflow:hidden;position:relative;border-radius:16px;border:1px solid #1e293b;display:flex;align-items:center;justify-content:center;padding:20px;font-size:13px;color:#475569;
+  background-color:#0b0f19;
+  background-image:linear-gradient(45deg,#1e293b 25%,transparent 25%),linear-gradient(-45deg,#1e293b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1e293b 75%),linear-gradient(-45deg,transparent 75%,#1e293b 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.canvas img,.canvas svg{max-width:100%;max-height:100%;width:auto;height:auto;transition:transform .2s}
+#single{display:none;flex:1}
+
+/* ===== INFO PANEL ===== */
+.info-panel{background:#0f172a;border-radius:16px;padding:16px;font-size:12px;overflow-y:auto}
+.info-panel h3{font-weight:700;margin-bottom:12px;font-size:14px}
+#info{color:#94a3b8;line-height:1.8}
+.workflow-steps{color:#94a3b8;line-height:2.2}
+.version-note{font-size:11px;color:#475569;margin-top:8px}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#0f172a}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:99px}
 </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen">
-<header class="h-16 border-b border-slate-800 bg-slate-900 px-5 flex items-center justify-between">
-<div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-violet-600 grid place-items-center font-black">RI</div><div><b>Vector Studio PRO</b><div class="text-[10px] text-slate-400">v3.2 Fixed • Image → Vector</div></div></div>
-<div class="flex gap-2"><button id="reset" class="px-3 py-2 rounded-lg bg-slate-800 text-xs">Reset</button><button id="download" disabled class="px-4 py-2 rounded-lg bg-emerald-600 disabled:bg-slate-800 text-xs font-bold">Export SVG</button></div>
+<body>
+<header>
+  <div class="logo-wrap">
+    <div class="logo">RI</div>
+    <div>
+      <div class="logo-title">Vector Studio PRO</div>
+      <div class="logo-sub">v3.2 Fixed • Image → Vector</div>
+    </div>
+  </div>
+  <div class="header-btns">
+    <button id="reset" class="btn-reset">Reset</button>
+    <button id="download" disabled class="btn-export">Export SVG</button>
+  </div>
 </header>
 
-<main class="p-4 grid lg:grid-cols-[290px_1fr_300px] gap-4 h-[calc(100vh-64px)]">
-<aside class="overflow-auto space-y-3">
-<div id="drop" class="border-2 border-dashed border-slate-700 rounded-2xl p-5 text-center bg-slate-900 cursor-pointer"><input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden><div class="text-3xl">↥</div><b>Upload / Drop</b><p class="text-[11px] text-slate-400 mt-1">PNG JPG WEBP • 20MB</p></div>
-<div class="bg-slate-900 rounded-2xl p-4 space-y-4">
-<div class="flex justify-between text-sm"><span>AI Background</span><input id="removeBg" type="checkbox" checked class="accent-violet-500"></div>
-<div><label class="text-xs">Quality Preset</label><select id="preset" class="w-full mt-1 bg-slate-800 rounded-lg p-2 text-sm"><option value="fast">Fast</option><option value="balanced" selected>Balanced</option><option value="high">High</option><option value="ultra">Ultra</option></select></div>
-<div><label class="text-xs">Color Precision <b id="pv">7</b></label><input id="precision" type="range" min="2" max="8" value="7" class="w-full accent-violet-500"></div>
-<div><label class="text-xs">Speckle Filter <b id="sv">4</b></label><input id="speckle" type="range" min="0" max="16" value="4" class="w-full accent-violet-500"></div>
-<div><label class="text-xs">Detail <b id="dv">4</b></label><input id="detail" type="range" min="1" max="7" value="4" class="w-full accent-violet-500"></div>
-<div><label class="text-xs">Smoothness <b id="mv">4</b></label><input id="smooth" type="range" min="1" max="7" value="4" class="w-full accent-violet-500"></div>
-</div>
-<div class="bg-slate-900 rounded-2xl p-4 space-y-3">
-<label class="flex justify-between text-xs">Enhance <input id="enhance" type="checkbox"></label>
-<label class="flex justify-between text-xs">Denoise <input id="denoise" type="checkbox"></label>
-<div><label class="text-xs">Background</label><select id="bgType" class="w-full mt-1 bg-slate-800 rounded-lg p-2 text-sm"><option value="transparent">Transparent</option><option value="solid">Solid</option><option value="gradient">Gradient</option></select></div>
-<div class="grid grid-cols-2 gap-2"><input id="c1" type="color" value="#ffffff" class="w-full h-9"><input id="c2" type="color" value="#4f46e5" class="w-full h-9"></div>
-<button id="trace" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 font-bold text-sm">✨ MAGIC VECTOR</button>
-<p id="status" class="text-center text-xs text-slate-400 min-h-4"></p>
-</div>
-</aside>
+<main>
+  <!-- LEFT SIDEBAR -->
+  <aside>
+    <div id="drop" class="upload-box">
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+      <div class="upload-icon">↥</div>
+      <div class="upload-title">Upload / Drop</div>
+      <p class="upload-sub">PNG JPG WEBP • 20MB</p>
+    </div>
 
-<section class="min-w-0 flex flex-col gap-3">
-<div class="bg-slate-900 rounded-xl p-2 flex gap-2"><button class="tab active px-3 py-2 rounded-lg text-xs" data-view="split">Split</button><button class="tab px-3 py-2 rounded-lg text-xs" data-view="original">Original</button><button class="tab px-3 py-2 rounded-lg text-xs" data-view="vector">Vector</button><span class="ml-auto text-xs text-slate-400 self-center" id="zoomText">100%</span><button id="zoomOut" class="px-2">−</button><button id="zoomIn" class="px-2">+</button></div>
-<div class="flex-1 grid md:grid-cols-2 gap-3 min-h-0" id="split">
-<div class="checker rounded-2xl border border-slate-800 canvas flex items-center justify-center p-5" id="original">Original preview</div>
-<div class="checker rounded-2xl border border-slate-800 canvas flex items-center justify-center p-5" id="vector">Vector preview</div>
-</div>
-<div id="single" class="hidden flex-1 checker rounded-2xl border border-slate-800 canvas items-center justify-center p-5"></div>
-</section>
+    <div class="card">
+      <div class="row"><span>AI Background</span><input id="removeBg" type="checkbox" checked></div>
+      <div class="slider-row">
+        <label>Quality Preset</label>
+        <select id="preset">
+          <option value="fast">Fast</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="high">High</option>
+          <option value="ultra">Ultra</option>
+        </select>
+      </div>
+      <div class="slider-row"><label>Color Precision <b id="pv">7</b></label><input id="precision" type="range" min="2" max="8" value="7"></div>
+      <div class="slider-row"><label>Speckle Filter <b id="sv">4</b></label><input id="speckle" type="range" min="0" max="16" value="4"></div>
+      <div class="slider-row"><label>Detail <b id="dv">4</b></label><input id="detail" type="range" min="1" max="7" value="4"></div>
+      <div class="slider-row"><label>Smoothness <b id="mv">4</b></label><input id="smooth" type="range" min="1" max="7" value="4"></div>
+    </div>
 
-<aside class="bg-slate-900 rounded-2xl p-4 text-xs overflow-auto">
-<h3 class="font-bold mb-4">Project Info</h3>
-<div id="info" class="space-y-2 text-slate-400">No image loaded.</div>
-<hr class="border-slate-800 my-4">
-<h3 class="font-bold mb-3">Workflow</h3>
-<div class="space-y-2 text-slate-400"><div>① Upload image</div><div>② Configure AI/vector settings</div><div>③ Magic Vector</div><div>④ Inspect result</div><div>⑤ Export SVG</div></div>
-<hr class="border-slate-800 my-4">
-<p class="text-[11px] text-slate-500">v3.2 Fixed: VTracer threshold, detailed errors, AI fallback, SVG validation and diagnostics.</p>
-</aside>
+    <div class="card">
+      <label class="row">Enhance <input id="enhance" type="checkbox"></label>
+      <label class="row">Denoise <input id="denoise" type="checkbox"></label>
+      <div class="slider-row">
+        <label>Background</label>
+        <select id="bgType">
+          <option value="transparent">Transparent</option>
+          <option value="solid">Solid</option>
+          <option value="gradient">Gradient</option>
+        </select>
+      </div>
+      <div class="color-row">
+        <input id="c1" type="color" value="#ffffff">
+        <input id="c2" type="color" value="#4f46e5">
+      </div>
+      <button id="trace" class="btn-magic" style="margin-top:12px">✨ MAGIC VECTOR</button>
+      <p id="status" class="status"></p>
+    </div>
+  </aside>
+
+  <!-- CENTER CANVAS -->
+  <section>
+    <div class="tab-bar">
+      <button class="tab active" data-view="split">Split</button>
+      <button class="tab" data-view="original">Original</button>
+      <button class="tab" data-view="vector">Vector</button>
+      <span class="zoom-info" id="zoomText">100%</span>
+      <button id="zoomOut" class="zoom-btn">−</button>
+      <button id="zoomIn" class="zoom-btn">+</button>
+    </div>
+    <div class="canvas-grid" id="split">
+      <div class="canvas" id="original">Original preview</div>
+      <div class="canvas" id="vector">Vector preview</div>
+    </div>
+    <div id="single" class="canvas"></div>
+  </section>
+
+  <!-- RIGHT INFO PANEL -->
+  <aside class="info-panel">
+    <h3>Project Info</h3>
+    <div id="info">No image loaded.</div>
+    <hr class="divider">
+    <h3>Workflow</h3>
+    <div class="workflow-steps">
+      <div>① Upload image</div>
+      <div>② Configure AI/vector settings</div>
+      <div>③ Magic Vector</div>
+      <div>④ Inspect result</div>
+      <div>⑤ Export SVG</div>
+    </div>
+    <hr class="divider">
+    <p class="version-note">v3.2 Fixed: VTracer threshold, detailed errors, AI fallback, SVG validation and diagnostics.</p>
+  </aside>
 </main>
 
 <script>
@@ -84,7 +211,7 @@ $("trace").onclick=async()=>{
 
  $("trace").disabled=true;
  $("status").textContent="Magic Vector processing...";
- $("status").className="text-center text-xs text-amber-400 min-h-4";
+ $("status").style.color="#f59e0b";
 
  try{
    const r=await fetch("/api/vectorize",{method:"POST",body:fd});
@@ -98,7 +225,7 @@ $("trace").onclick=async()=>{
    $("download").disabled=false;
    $("info").innerHTML=`<b>${selected.name}</b><br>Output: SVG<br>Canvas: ${d.width} × ${d.height}<br>ViewBox: ${d.viewBox||"auto"}<br>Processing: ${d.processing_time}s`;
    $("status").textContent=d.warning ? "Vector complete ✓ ("+d.warning+")" : "Vector complete ✓";
-   $("status").className="text-center text-xs text-emerald-400 min-h-4";
+   $("status").style.color="#34d399";
    applyZoom();
  }catch(e){
    console.error(e);
@@ -109,7 +236,7 @@ $("trace").onclick=async()=>{
  }
 };
 $("download").onclick=()=>{if(!svgOut)return;let b=new Blob([svgOut],{type:"image/svg+xml"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=(selected.name.replace(/\.[^.]+$/,"")||"ri-vector")+".svg";a.click();URL.revokeObjectURL(a.href)};
-document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{view=t.dataset.view;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");if(view==="split"){$("split").classList.remove("hidden");$("single").classList.add("hidden")}else{$("split").classList.add("hidden");$("single").classList.remove("hidden");$("single").innerHTML=view==="original"?$("original").innerHTML:$("vector").innerHTML}});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{view=t.dataset.view;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");if(view==="split"){$("split").style.display="grid";$("single").style.display="none"}else{$("split").style.display="none";$("single").style.display="flex";$("single").innerHTML=view==="original"?$("original").innerHTML:$("vector").innerHTML}});
 function applyZoom(){document.querySelectorAll(".canvas img,.canvas svg").forEach(x=>x.style.transform=`scale(${zoom})`);$("zoomText").textContent=Math.round(zoom*100)+"%"}
 $("zoomIn").onclick=()=>{zoom=Math.min(3,zoom+.1);applyZoom()};$("zoomOut").onclick=()=>{zoom=Math.max(.4,zoom-.1);applyZoom()};
 $("reset").onclick=()=>location.reload();
